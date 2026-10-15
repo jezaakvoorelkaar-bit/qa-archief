@@ -231,7 +231,7 @@ $("#askForm").addEventListener("submit", async e => {
   const box = $("#results"); box.hidden = false;
   if (!matches.length){
     box.innerHTML = `<h2 class="res-head">Deze vraag is nog niet beantwoord</h2>
-    <div class="nomatch"><p>Stel hem in de Huddle, dan neemt Veronique hem mee in de volgende Q&amp;A. Daarna komt het antwoord ook hier te staan.</p></div>`;
+    <div class="nomatch"><p>Stel je vraag dan tijdens de aankomende Q&amp;A. Daarna komt het antwoord ook hier te staan.</p></div>`;
   } else {
     box.innerHTML = `<h2 class="res-head">Dit hebben we gevonden</h2>` + matches.map(m => {
       const i = state.items.find(x=>x.id===m.id);
