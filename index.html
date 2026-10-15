@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Q&amp;A Archief Bloeiende Praktijk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: navy kop met zoekvraag als hoofdmoment, daaronder het archief als rustige lijst per thema */
+:root{
+  --ink:#0D0430; --navy:#13154E; --blue:#2E9BFF; --mist:#f4f5f9; --paper:#ffffff;
+  --bg:var(--mist); --surface:var(--paper); --fg:#14123a; --muted:#5a5b7a; --line:#dfe1ec;
+  --chip:#e8eaf4; --hit:#e3f1ff; --hitline:#2E9BFF; --head:var(--ink); --headfg:#ffffff; --headmuted:#b8bde0;
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a0824; --surface:#13154E; --fg:#eceefa; --muted:#a6aad0; --line:#2a2d68;
+  --chip:#1e2160; --hit:#16285c; --hitline:#5cb2ff; --head:#06041a; --headfg:#ffffff; --headmuted:#9ea3cf; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a0824; --surface:#13154E; --fg:#eceefa; --muted:#a6aad0; --line:#2a2d68;
+  --chip:#1e2160; --hit:#16285c; --hitline:#5cb2ff; --head:#06041a; --headfg:#ffffff; --headmuted:#9ea3cf; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:var(--head);color:var(--headfg)}
+header .wrap{padding-block:40px 36px;display:grid;gap:18px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--headmuted);font-weight:600}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,6vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+.lede{color:var(--headmuted);margin:0;max-width:56ch}
+.ask{display:grid;gap:10px;margin-top:6px}
+.ask label{font-weight:600;font-size:15px}
+textarea{font:inherit;width:100%;box-sizing:border-box;min-height:84px;padding:14px;border:2px solid transparent;border-radius:0;background:#ffffff;color:#14123a;resize:vertical}
+textarea:focus{outline:none;border-color:var(--blue)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:0;box-shadow:none;text-transform:uppercase;font-weight:500;letter-spacing:.06em;font-size:14px;padding:13px 22px;background:var(--blue);color:#ffffff}
+.btn:hover{filter:brightness(1.08)}
+.btn:focus-visible,.chip:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.btn[disabled]{opacity:.6;cursor:default}
+.hint{font-size:13px;color:var(--headmuted)}
+main .wrap{padding-block:28px 56px;display:grid;gap:36px}
+.results{display:grid;gap:14px}
+.results[hidden]{display:none!important}
+.res-head{font-family:var(--f-display);font-size:22px;margin:0}
+.match{background:var(--hit);border-left:4px solid var(--hitline);padding:16px 18px;display:grid;gap:6px}
+.tag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--hitline)}
+.match h3{margin:0;font-size:17px;font-weight:600}
+.match p{margin:0}
+.meta{font-size:13px;color:var(--muted)}
+.nomatch{background:var(--surface);border:1px solid var(--line);padding:18px;display:grid;gap:8px}
+.nomatch p{margin:0}
+.archive{display:grid;gap:16px}
+.archive-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+h2{font-family:var(--f-display);font-weight:400;font-size:26px;margin:0}
+.count{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--fg);border-radius:0;padding:7px 12px;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#ffffff}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue)}}
+.list{display:grid;border-top:1px solid var(--line)}
+details{border-bottom:1px solid var(--line);background:var(--surface)}
+summary{list-style:none;cursor:pointer;padding:16px 18px;display:grid;gap:4px}
+summary::-webkit-details-marker{display:none}
+summary .q{font-weight:600;font-size:16px;padding-right:28px;position:relative}
+summary .q::after{content:"+";position:absolute;right:0;top:-2px;font-size:22px;font-weight:400;color:var(--blue)}
+details[open] summary .q::after{content:"×"}
+.answer{padding:0 18px 18px;display:grid;gap:10px;min-width:0}
+.answer p{margin:0;max-width:65ch}
+.flag{display:inline-block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;background:var(--chip);color:var(--muted);padding:3px 8px}
+.empty{padding:22px 18px;background:var(--surface);border:1px dashed var(--line);color:var(--muted)}
+footer .wrap{padding-block:0 40px;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: no-preference){.match{animation:in .35s ease both}@keyframes in{from{transform:translateY(6px);opacity:.4}to{transform:none;opacity:1}}}
+</style>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Bouw een Bloeiende Praktijk in 90 dagen</div>
+    <h1>Is jouw vraag al beantwoord?</h1>
+    <p class="lede">Elke maand beantwoordt Veronique jullie vragen live. Typ hieronder je vraag in je eigen woorden. We zoeken op betekenis, dus het hoeft niet precies hetzelfde geformuleerd te zijn.</p>
+    <form class="ask" id="askForm">
+      <label for="vraag">Jouw vraag</label>
+      <textarea id="vraag" placeholder="Bijvoorbeeld: waar haal ik mijn eerste cliënten vandaan?"></textarea>
+      <div class="row">
+        <button class="btn" type="submit" id="zoekBtn">Zoek antwoord</button>
+        <span class="hint" id="status" aria-live="polite"></span>
+      </div>
+    </form>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="results" id="results" hidden aria-live="polite"></section>
+
+    <section class="archive">
+      <div class="archive-head">
+        <h2>Alle beantwoorde vragen</h2>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Filter op thema"></div>
+      <div class="list" id="list">
+        <div class="empty">Het archief wordt geladen. Na elke Q&amp;A komen hier de nieuwe vragen met antwoord bij.</div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer><div class="wrap">Beantwoord dit niet helemaal je vraag of is er nog iets onduidelijk? Stel je vraag dan tijdens de volgende Q&amp;A.</div></footer>
+
+<script>
+const state = { items: [], theme: "Alle" };
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const themes = ["Alle", ...[...new Set(state.items.map(i => i.thema))].sort()];
+  $("#chips").innerHTML = themes.map(t => `<button type="button" class="chip" aria-pressed="${t===state.theme}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+  const shown = state.items.filter(i => state.theme==="Alle" || i.thema===state.theme);
+  $("#count").textContent = state.items.length ? `${shown.length} van ${state.items.length} vragen` : "";
+  if (!state.items.length){
+    $("#list").innerHTML = `<div class="empty">Nog geen vragen in het archief. Na elke Q&amp;A komen hier de nieuwe vragen met antwoord bij.</div>`;
+    return;
+  }
+  $("#list").innerHTML = shown.map(card).join("");
+}
+function card(i){
+  return `<details id="v-${esc(i.id)}"><summary><span class="q">${esc(i.vraag)}</span><span class="meta">${esc(i.thema)} · ${esc(i.sessie)}</span></summary>
+  <div class="answer"><p>${esc(i.antwoord)}</p><span class="meta">Terugkijken: ${esc(i.sessie)}, vanaf minuut ${esc(i.minuut)}</span>${i.voorbeeld?'<span><span class="flag">Voorbeeld</span></span>':''}</div></details>`;
+}
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  state.theme = b.dataset.t; render();
+});
+
+// Eenvoudige zoeker op betekenis als terugval, met groepen woorden die hetzelfde bedoelen
+const groups = [
+  ["klant","klanten","client","clienten","cliënt","cliënten","opdrachtgever","opdrachtgevers","doelgroep","aanmelding","aanmeldingen"],
+  ["prijs","prijzen","tarief","tarieven","uurtarief","kosten","geld","rekenen","vragen","duur","goedkoop","korting"],
+  ["zichtbaar","zichtbaarheid","social","instagram","linkedin","facebook","posten","posts","content","marketing"],
+  ["eng","angst","bang","spannend","durf","durven","twijfel","onzeker","mindset"],
+  ["aanbod","traject","pakket","programma","dienst","product"],
+  ["tijd","druk","planning","structuur","overzicht","uren","dagen"],
+  ["verkoop","verkopen","sales","gesprek","kennismaking","kennismakingsgesprek","intake","afsluiten","ja"],
+  ["nieuwsbrief","mail","mailen","mails","maillijst","lijst"],
+  ["website","site","pagina","salespagina","homepagina"]
+];
+function norm(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2)}
+function concepts(words){const set=new Set(words);groups.forEach((g,gi)=>{const gn=g.map(x=>norm(x)[0]||x);if(words.some(w=>gn.some(x=>w.startsWith(x)||x.startsWith(w))))set.add("#"+gi)});return set}
+function localMatch(q){
+  const a = concepts(norm(q));
+  return state.items.map(i => {
+    const b = concepts(norm(i.vraag+" "+i.thema));
+    let s=0; a.forEach(x=>{ if(b.has(x)) s += x.startsWith("#")?2:1 });
+    return {id:i.id, s};
+  }).filter(r=>r.s>=3).sort((x,y)=>y.s-x.s).slice(0,3).map(r=>({id:r.id, mate:r.s>=5?"zelfde":"verwant"}));
+}
+
+let samplePromise = window.claude?.use ? window.claude.use("sample") : Promise.resolve(null);
+async function smartMatch(q){
+  const sample = await samplePromise;
+  if (!sample) return localMatch(q);
+  const lijst = state.items.map(i => `${i.id} | ${i.thema} | ${i.vraag}`).join("\n");
+  const prompt = `Je helpt deelnemers van een coachingprogramma te zien of hun vraag al eerder is beantwoord.
+Nieuwe vraag: "${q}"
+
+Eerder beantwoorde vragen (id | thema | vraag):
+${lijst}
+
+Kies maximaal 3 eerdere vragen die over hetzelfde gaan, ook als ze anders geformuleerd zijn. Gebruik "zelfde" als het in de kern dezelfde vraag is, "verwant" als het antwoord waarschijnlijk helpt. Geef niets als er niets past.
+Antwoord alleen met JSON: {"matches":[{"id":"...","mate":"zelfde"|"verwant"}]}`;
+  try {
+    const out = await sample.json(prompt, { modelTier: "quick" });
+    const ids = new Set(state.items.map(i=>i.id));
+    return (out?.matches || []).filter(m => ids.has(m.id)).slice(0,3);
+  } catch (e) {
+    if (e?.code === "not_granted" || e?.code === "sampling_disabled") samplePromise = Promise.resolve(null);
+    return localMatch(q);
+  }
+}
+
+$("#askForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const q = $("#vraag").value.trim();
+  if (q.length < 5){ $("#status").textContent = "Typ eerst je vraag."; return; }
+  if (!state.items.length){ $("#status").textContent = "Het archief is nog leeg."; return; }
+  const btn = $("#zoekBtn"); btn.disabled = true; $("#status").textContent = "Even zoeken…";
+  const matches = await smartMatch(q);
+  btn.disabled = false; $("#status").textContent = "";
+  const box = $("#results"); box.hidden = false;
+  if (!matches.length){
+    box.innerHTML = `<h2 class="res-head">Deze vraag is nog niet beantwoord</h2>
+    <div class="nomatch"><p>Stel hem in de Huddle, dan neemt Veronique hem mee in de volgende Q&amp;A. Daarna komt het antwoord ook hier te staan.</p></div>`;
+  } else {
+    box.innerHTML = `<h2 class="res-head">Dit hebben we gevonden</h2>` + matches.map(m => {
+      const i = state.items.find(x=>x.id===m.id);
+      return `<article class="match"><span class="tag">${m.mate==="zelfde"?"Zelfde vraag":"Lijkt op jouw vraag"}</span>
+      <h3>${esc(i.vraag)}</h3><p>${esc(i.antwoord)}</p><span class="meta">${esc(i.thema)} · ${esc(i.sessie)}, vanaf minuut ${esc(i.minuut)}</span></article>`;
+    }).join("") + `<div class="nomatch"><p>Beantwoord dit niet helemaal je vraag of is er nog iets onduidelijk? Stel je vraag dan tijdens de volgende Q&amp;A.</p></div>`;
+  }
+  box.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+});
+
+fetch("data.json?v="+Date.now()).then(r=>r.json()).then(d=>{
+  state.items = (d.vragen||[]).slice().sort((a,b)=> (b.datum||"").localeCompare(a.datum||"") || (a.volgorde||0)-(b.volgorde||0));
+  render();
+}).catch(()=>{ $("#list").innerHTML = '<div class="empty">Het archief kon niet geladen worden. Probeer het later opnieuw.</div>'; });
+</script>
+
+</body>
+</html>
