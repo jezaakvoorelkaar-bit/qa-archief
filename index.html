@@ -167,7 +167,7 @@ function localMatch(q){
   }).filter(r=>r.hard&&r.cover>=0.5).sort((a,b)=>b.score-a.score);
   if(!scored.length)return[];
   const best=scored[0].score;
-  return scored.filter(r=>r.score>=best*0.6).slice(0,3).map(r=>({id:r.id,mate:r.cover>=0.8?"zelfde":"verwant"}));
+  return scored.filter(r=>r.score>=best*0.6).slice(0,3).map((r,i)=>({id:r.id,mate:(i===0&&r.cover>=0.8)?"zelfde":"verwant"}));
 }
 
 let samplePromise = window.claude?.use ? window.claude.use("sample") : Promise.resolve(null);
