@@ -143,7 +143,8 @@ const FILLER=new Set(("ik je jij u mijn jouw me mij het de een en of om te van i
 "goed goede beter best beste idee ideeen slim slimme verstandig handig zinvol nuttig nodig belangrijk fijn juist juiste mogelijk eigenlijk zomaar precies gewoon vaak altijd nooit "+
 "vraag vragen vind vindt vinden denk denkt advies tip tips manier manieren doen doe maken maak krijgen krijg gaan ga hebben heb hebt heeft zetten zet kom komt komen moment "+
 "geven geef gebruiken gebruik inzetten starten start beginnen begin aanpakken pak houden hou willen "+
-"iemand mensen ding dingen zaken jouw jullie onze ons ze zij hij hem haar hun graag over").split(" "));
+"iemand mensen ding dingen zaken jouw jullie onze ons ze zij hij hem haar hun graag over "+
+"naar zodat door gaat laten laat zelf anders vanuit tijdens via zonder daarna eigen basis huidige nieuwe bijna paar per dezelfde verschillende meerdere volledig vooral andere werken werkt omgaan halen gebruikte lopen zien spreekt geeft eerst daarom welk soort soorten mogelijke ervaring bedoel bedoelt hoi veronique groet dank bedankt alvast benieuwd vraag vroeg weet weten snap zeggen zegt kijk kijken hierin daarin ermee hiermee waarmee wellicht misschien ergens beetje zoveel zoals bijvoorbeeld nou oke strategie strategisch strategieen aanpak beste werkt").split(" "));
 const INTENT=[[/goed idee|\bslim|verstandig|zinvol|\bnut\b|\bzin\b|waarom|loont/,/waarom|\bzin\b|\bnut\b|echt|loont/],[/starten|beginnen|wanneer|vanaf/,/wanneer|vanaf|begin|start|moment/],[/hoeveel/,/hoeveel|aantal/],[/welke|wat zet/,/welke|wat je/],[/\bwaar\b/,/\bwaar\b|plek/],[/hoe lang|duur/,/lengte|lang|duur/],[/\bmeer\b|vergroten|groeien/,/vergro|meer|groei/]];
 const EXPAND=[[/hoeveel\s+(moet|kan|mag)?\s*(ik\s+)?(vragen|rekenen)|\brekenen\b|\btarief|\bkost/,"prijs"],[/\bklanten?\b.*\b(vind|vinden|krijg|krijgen|kom|komen)\b|\b(vind|vinden|krijg|krijgen|kom|komen)\b.*\bklanten?\b/,"klanten vinden"]];
 function fold(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ")}
@@ -158,11 +159,17 @@ function buildIndex(){
   VOCAB=[...new Set(INDEX.flatMap(d=>d.topic))];
 }
 function hits(t,list){return list.some(w=>same(t,w))}
-function topicWords(q){
-  if(!INDEX)buildIndex();
+let BEGRIPPEN=[];
+fetch("begrippen.json?v="+Date.now()).then(r=>r.json()).then(b=>{BEGRIPPEN=b||[]}).catch(()=>{});
+function expandText(q){
   let text=fold(q);
   EXPAND.forEach(([re,add])=>{if(re.test(text))text+=" "+add});
-  return [...new Set(toks(text))].filter(t=>hits(t,VOCAB));
+  BEGRIPPEN.forEach(b=>{const her=(b.herken||[]).map(fold).filter(Boolean);if(her.some(s=>text.includes(s)))text+=" "+(b.zoekwoorden||[]).map(fold).join(" ")});
+  return text;
+}
+function topicWords(q){
+  if(!INDEX)buildIndex();
+  return [...new Set(toks(expandText(q)))].filter(t=>hits(t,VOCAB));
 }
 function localMatch(q){
   const tw=topicWords(q);
@@ -170,6 +177,7 @@ function localMatch(q){
   const qf=fold(q),intents=INTENT.filter(([qr])=>qr.test(qf)).map(([,or])=>or);
   const N=INDEX.length,idf={};
   tw.forEach(t=>{const df=INDEX.filter(d=>hits(t,d.topic)).length;idf[t]=Math.log(1+N/df)});
+  if(tw.length>4){tw.sort((a,b)=>idf[b]-idf[a]);tw.length=4}
   const total=tw.reduce((a,t)=>a+idf[t],0);
   const scored=INDEX.map(d=>{
     let s=0,c=0;
@@ -183,9 +191,16 @@ function localMatch(q){
 }
 
 let samplePromise = window.claude?.use ? window.claude.use("sample") : Promise.resolve(null);
+function splitMatch(q){
+  const parts=q.split(/[?!.\n]+/).map(s=>s.trim()).filter(s=>s.split(/\s+/).length>=3);
+  if(parts.length<=1)return localMatch(q);
+  const seen=new Set(),out=[];
+  parts.forEach(p=>localMatch(p).forEach(m=>{if(!seen.has(m.id)){seen.add(m.id);out.push(m)}}));
+  return out.slice(0,3).map((m,i)=>({id:m.id,mate:i===0?"beste":"verwant"}));
+}
 async function smartMatch(q){
   const sample = await samplePromise;
-  if (!sample) return localMatch(q);
+  if (!sample) return splitMatch(q);
   const lijst = state.items.map(i => `${i.id} | ${i.vraag} | onderwerp: ${i.onderwerp||""}`).join("\n");
   const prompt = `Een deelnemer van een coachingprogramma typt een vraag. Zoek welke eerder beantwoorde vragen ECHT over hetzelfde gaan als wat de deelnemer wil weten.
 Nieuwe vraag: "${q}"
@@ -201,7 +216,7 @@ Antwoord alleen met JSON: {"matches":[{"id":"...","mate":"zelfde"|"verwant"}]}`;
     return (out?.matches || []).filter(m => ids.has(m.id)).slice(0,3);
   } catch (e) {
     if (e?.code === "not_granted" || e?.code === "sampling_disabled") samplePromise = Promise.resolve(null);
-    return localMatch(q);
+    return splitMatch(q);
   }
 }
 
