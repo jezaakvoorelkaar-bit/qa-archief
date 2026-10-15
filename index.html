@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Q&amp;A Archief Bloeiende Praktijk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: navy kop met zoekvraag als hoofdmoment, daaronder het archief als rustige lijst per thema */
 :root{
   --ink:#0D0430; --navy:#13154E; --blue:#2E9BFF; --mist:#f4f5f9; --paper:#ffffff;
   --bg:var(--mist); --surface:var(--paper); --fg:#14123a; --muted:#5a5b7a; --line:#dfe1ec;
   --chip:#e8eaf4; --hit:#e3f1ff; --hitline:#2E9BFF; --head:var(--ink); --headfg:#ffffff; --headmuted:#b8bde0;
-  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
-  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-display:"Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body:"Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0a0824; --surface:#13154E; --fg:#eceefa; --muted:#a6aad0; --line:#2a2d68;
@@ -21,12 +21,12 @@
 :root[data-theme="dark"]{
   --bg:#0a0824; --surface:#13154E; --fg:#eceefa; --muted:#a6aad0; --line:#2a2d68;
   --chip:#1e2160; --hit:#16285c; --hitline:#5cb2ff; --head:#06041a; --headfg:#ffffff; --headmuted:#9ea3cf; color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6}
 .wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header{background:var(--head);color:var(--headfg)}
 header .wrap{padding-block:40px 36px;display:grid;gap:18px}
 .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--headmuted);font-weight:600}
-h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,6vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+h1{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(30px,6vw,44px);line-height:1.1;margin:0;text-wrap:balance}
 .lede{color:var(--headmuted);margin:0;max-width:56ch}
 .ask{display:grid;gap:10px;margin-top:6px}
 .ask label{font-weight:600;font-size:15px}
@@ -42,7 +42,7 @@ button{font:inherit;cursor:pointer}
 main .wrap{padding-block:28px 56px;display:grid;gap:36px}
 .results{display:grid;gap:14px}
 .results[hidden]{display:none!important}
-.res-head{font-family:var(--f-display);font-size:22px;margin:0}
+.res-head{font-family:var(--f-display);font-weight:700;font-size:22px;margin:0}
 .match{background:var(--hit);border-left:4px solid var(--hitline);padding:16px 18px;display:grid;gap:6px}
 .tag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--hitline)}
 .match h3{margin:0;font-size:17px;font-weight:600}
@@ -52,7 +52,7 @@ main .wrap{padding-block:28px 56px;display:grid;gap:36px}
 .nomatch p{margin:0}
 .archive{display:grid;gap:16px}
 .archive-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
-h2{font-family:var(--f-display);font-weight:400;font-size:26px;margin:0}
+h2{font-family:var(--f-display);font-weight:700;font-size:26px;margin:0}
 .count{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:1px solid var(--line);background:var(--chip);color:var(--fg);border-radius:0;padding:7px 12px;font-size:14px}
