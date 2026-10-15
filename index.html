@@ -137,37 +137,49 @@ $("#chips").addEventListener("click", e => {
   state.theme = b.dataset.t; render();
 });
 
-// Zoeker: kijkt waar de vraag over gaat (vraag, onderwerp, zoekwoorden) en telt zeldzame, specifieke woorden zwaarder dan algemene
-const STOP=new Set("ik je jij u mijn mijn jouw het de een en of om te van in op met voor aan bij als dat dit die deze er is zijn ben was wordt worden kan kun kunnen moet moeten mag wil wilt zou zal ook nog al wel niet geen maar dan dus nu hier daar wat welke wie hoe hoeveel zo heel erg veel meer minder echt even toch iets alles goed goede beter handig slim verstandig waar klant klanten vraag vragen manier doen maken krijgen gaan hebben heb hebt heeft zijn mensen iemand ideale zetten zet vind vindt eigenlijk precies".split(" "));
-const SOFT=new Set("waarom wanneer hoe waar".split(" "));
+// Zoeker: haalt eerst de onderwerpwoorden uit de vraag (woorden die in de onderwerpen en zoekwoorden van het archief voorkomen)
+// en negeert vulwoorden als "goed idee", "slim", "waarom". Alleen op die onderwerpwoorden wordt gezocht.
+const FILLER=new Set(("ik je jij u mijn jouw me mij het de een en of om te van in op met voor aan bij als dat dit die deze er is zijn ben was wordt worden kan kun kunnen moet moeten mag mogen wil wilt zou zal ook nog al wel niet geen maar dan dus nu hier daar wat welke wie hoe hoeveel waarom wanneer waar zo heel erg veel meer minder echt even toch iets alles "+
+"goed goede beter best beste idee ideeen slim slimme verstandig handig zinvol nuttig nodig belangrijk fijn juist juiste mogelijk eigenlijk zomaar precies gewoon vaak altijd nooit "+
+"vraag vragen vind vindt vinden denk denkt advies tip tips manier manieren doen doe maken maak krijgen krijg gaan ga hebben heb hebt heeft zetten zet kom komt komen moment "+
+"geven geef gebruiken gebruik inzetten starten start beginnen begin aanpakken pak houden hou willen "+
+"iemand mensen ding dingen zaken jouw jullie onze ons ze zij hij hem haar hun graag over").split(" "));
+const INTENT=[[/goed idee|\bslim|verstandig|zinvol|\bnut\b|\bzin\b|waarom|loont/,/waarom|\bzin\b|\bnut\b|echt|loont/],[/starten|beginnen|wanneer|vanaf/,/wanneer|vanaf|begin|start|moment/],[/hoeveel/,/hoeveel|aantal/],[/welke|wat zet/,/welke|wat je/],[/\bwaar\b/,/\bwaar\b|plek/],[/hoe lang|duur/,/lengte|lang|duur/],[/\bmeer\b|vergroten|groeien/,/vergro|meer|groei/]];
+const EXPAND=[[/hoeveel\s+(moet|kan|mag)?\s*(ik\s+)?(vragen|rekenen)|\brekenen\b|\btarief|\bkost/,"prijs"],[/\bklanten?\b.*\b(vind|vinden|krijg|krijgen|kom|komen)\b|\b(vind|vinden|krijg|krijgen|kom|komen)\b.*\bklanten?\b/,"klanten vinden"]];
 function fold(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ")}
-function toks(s){return fold(s).split(/\s+/).filter(w=>w.length>2)}
+const VORM={kies:"kiezen",koos:"kiezen",keuze:"kiezen",schrijf:"schrijven",bouw:"bouwen",verhoog:"verhogen",omschrijf:"omschrijven",verkoop:"verkopen",post:"posten",bereik:"bereik",ideaal:"ideale",doelgroep:"doelgroep",niche:"niche"};
+function toks(s){return fold(s).split(/\s+/).filter(w=>w.length>2&&!FILLER.has(w)).map(w=>VORM[w]||w)}
 function stem(w){return w.length>5?w.slice(0,Math.max(5,w.length-3)):w}
-function same(a,b){if(a===b)return true;if(Math.abs(a.length-b.length)>4)return false;const sa=stem(a),sb=stem(b);return (sa.length>=4&&b.startsWith(sa))||(sb.length>=4&&a.startsWith(sb))}
-let INDEX=null;
+function same(a,b){if(a===b)return true;if(Math.abs(a.length-b.length)>3)return false;const sa=stem(a),sb=stem(b);return (sa.length>=4&&b.startsWith(sa))||(sb.length>=4&&a.startsWith(sb))}
+let INDEX=null,VOCAB=null;
 function buildIndex(){
-  INDEX=state.items.map(i=>({id:i.id,strong:[...new Set(toks([i.vraag,i.onderwerp||"",(i.zoekwoorden||[]).join(" ")].join(" ")))],weak:[...new Set(toks(i.antwoord))]}));
+  INDEX=state.items.map(i=>({id:i.id,ond:toks(i.onderwerp),zoek:toks((i.zoekwoorden||[]).join(" ")),thema:toks(i.thema),ondRaw:fold(i.onderwerp)}));
+  INDEX.forEach(d=>d.topic=[...new Set([...d.ond,...d.zoek])]);
+  VOCAB=[...new Set(INDEX.flatMap(d=>d.topic))];
 }
 function hits(t,list){return list.some(w=>same(t,w))}
-function localMatch(q){
+function topicWords(q){
   if(!INDEX)buildIndex();
-  const N=INDEX.length;
-  const qt=[...new Set(toks(q))].filter(t=>!STOP.has(t));
-  if(!qt.length)return[];
-  const idf={};
-  qt.forEach(t=>{const df=INDEX.filter(d=>hits(t,d.strong)||hits(t,d.weak)).length;idf[t]=df?Math.log(1+N/df)*(SOFT.has(t)?0.3:1):0});
-  const known=qt.filter(t=>idf[t]>0);
-  if(!known.length)return[];
-  const total=known.reduce((a,t)=>a+idf[t],0);
+  let text=fold(q);
+  EXPAND.forEach(([re,add])=>{if(re.test(text))text+=" "+add});
+  return [...new Set(toks(text))].filter(t=>hits(t,VOCAB));
+}
+function localMatch(q){
+  const tw=topicWords(q);
+  if(!tw.length)return[];
+  const qf=fold(q),intents=INTENT.filter(([qr])=>qr.test(qf)).map(([,or])=>or);
+  const N=INDEX.length,idf={};
+  tw.forEach(t=>{const df=INDEX.filter(d=>hits(t,d.topic)).length;idf[t]=Math.log(1+N/df)});
+  const total=tw.reduce((a,t)=>a+idf[t],0);
   const scored=INDEX.map(d=>{
-    let strong=0,weak=0;
-    known.forEach(t=>{if(hits(t,d.strong))strong+=idf[t];else if(hits(t,d.weak))weak+=idf[t]});
-    const hard=known.some(t=>!SOFT.has(t)&&hits(t,d.strong));
-    return{id:d.id,strong,score:strong*3+weak*0.5,cover:strong/total,hard};
-  }).filter(r=>r.hard&&r.cover>=0.5).sort((a,b)=>b.score-a.score);
+    let s=0,c=0;
+    tw.forEach(t=>{if(hits(t,d.ond)){s+=idf[t]*1.5;c+=idf[t]}else if(hits(t,d.zoek)){s+=idf[t];c+=idf[t]}if(hits(t,d.thema)){s+=idf[t]*0.8;c=Math.max(c,idf[t]*0.6)}});
+    if(c>0&&intents.some(or=>or.test(d.ondRaw)))s+=0.8;
+    return{id:d.id,score:s,cover:c/total};
+  }).filter(r=>r.cover>=0.5).sort((a,b)=>b.score-a.score);
   if(!scored.length)return[];
   const best=scored[0].score;
-  return scored.filter(r=>r.score>=best*0.6).slice(0,3).map((r,i)=>({id:r.id,mate:(i===0&&r.cover>=0.8)?"zelfde":"verwant"}));
+  return scored.filter(r=>r.score>=best*0.7).slice(0,3).map((r,i)=>({id:r.id,mate:i===0?"beste":"verwant"}));
 }
 
 let samplePromise = window.claude?.use ? window.claude.use("sample") : Promise.resolve(null);
@@ -208,7 +220,7 @@ $("#askForm").addEventListener("submit", async e => {
   } else {
     box.innerHTML = `<h2 class="res-head">Dit hebben we gevonden</h2>` + matches.map(m => {
       const i = state.items.find(x=>x.id===m.id);
-      return `<article class="match"><span class="tag">${m.mate==="zelfde"?"Zelfde vraag":"Lijkt op jouw vraag"}</span>
+      return `<article class="match"><span class="tag">${m.mate==="beste"||m.mate==="zelfde"?"Past het best bij jouw vraag":"Ook over dit onderwerp"}</span>
       <h3>${esc(i.vraag)}</h3><p>${esc(i.antwoord)}</p><span class="meta">${esc(i.thema)} · ${esc(i.sessie)}, vanaf minuut ${esc(i.minuut)}</span></article>`;
     }).join("") + `<div class="nomatch"><p>Beantwoord dit niet helemaal je vraag of is er nog iets onduidelijk? Stel je vraag dan tijdens de volgende Q&amp;A.</p></div>`;
   }
@@ -216,7 +228,7 @@ $("#askForm").addEventListener("submit", async e => {
 });
 
 fetch("data.json?v="+Date.now()).then(r=>r.json()).then(d=>{
-  INDEX=null; state.items = (d.vragen||[]).slice().sort((a,b)=> (b.datum||"").localeCompare(a.datum||"") || (a.volgorde||0)-(b.volgorde||0));
+  INDEX=null; VOCAB=null; state.items = (d.vragen||[]).slice().sort((a,b)=> (b.datum||"").localeCompare(a.datum||"") || (a.volgorde||0)-(b.volgorde||0));
   render();
 }).catch(()=>{ $("#list").innerHTML = '<div class="empty">Het archief kon niet geladen worden. Probeer het later opnieuw.</div>'; });
 </script>
