@@ -150,7 +150,7 @@ function fold(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[Ì
 const VORM={kies:"kiezen",koos:"kiezen",keuze:"kiezen",schrijf:"schrijven",bouw:"bouwen",verhoog:"verhogen",omschrijf:"omschrijven",verkoop:"verkopen",post:"posten",bereik:"bereik",ideaal:"ideale",doelgroep:"doelgroep",niche:"niche"};
 function toks(s){return fold(s).split(/\s+/).filter(w=>w.length>2&&!FILLER.has(w)).map(w=>VORM[w]||w)}
 function stem(w){return w.length>5?w.slice(0,Math.max(5,w.length-3)):w}
-function same(a,b){if(a===b)return true;if(Math.abs(a.length-b.length)>3)return false;const sa=stem(a),sb=stem(b);return (sa.length>=4&&b.startsWith(sa))||(sb.length>=4&&a.startsWith(sb))}
+function same(a,b){if(a===b)return true;if(Math.abs(a.length-b.length)>3)return false;const sa=stem(a),sb=stem(b);return (sa.length>=5&&b.startsWith(sa))||(sb.length>=5&&a.startsWith(sb))}
 let INDEX=null,VOCAB=null;
 function buildIndex(){
   INDEX=state.items.map(i=>({id:i.id,ond:toks(i.onderwerp),zoek:toks((i.zoekwoorden||[]).join(" ")),thema:toks(i.thema),ondRaw:fold(i.onderwerp)}));
